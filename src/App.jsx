@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './config/supabase';
+import { useLocation } from 'react-router-dom'; // Agregado para manejar rutas
+
+// SEO Dinámico
+import SEO from './components/SEO';
 
 // Módulos y Páginas del Sistema
 import Login from './pages/Login';
@@ -190,6 +194,9 @@ export default function App() {
   const [perfil, setPerfil] = useState(null);
   const [metricas, setMetricas] = useState({ items: 0, contactos: 0, citas: 0 });
 
+  // Para saber en qué ruta estamos y poder redirigir si es necesario
+  const location = useLocation();
+
   useEffect(() => {
     let isMounted = true;
 
@@ -323,6 +330,10 @@ export default function App() {
   if (!sesion) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
+        <SEO 
+          title={authView === 'login' ? "Iniciar Sesión | PonteVisible" : "Registro | PonteVisible"}
+          description="Accede a tu panel de control para gestionar tu negocio en PonteVisible."
+        />
         {authView === 'login' ? (
           <Login 
             onSwitchToRegister={() => setAuthView('register')} 
@@ -349,6 +360,12 @@ export default function App() {
       fontFamily: 'system-ui, -apple-system, sans-serif',
       position: 'relative'
     }}>
+      {/* SEO Dinámico para el Dashboard */}
+      <SEO 
+        title="Panel de Control | PonteVisible Pro"
+        description="Gestiona tu negocio, catálogo, métricas y citas desde el panel de PonteVisible."
+      />
+      
       <ParticleBackground />
 
       <header style={{ 
