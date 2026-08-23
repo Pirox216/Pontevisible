@@ -1,0 +1,749 @@
+/* ========================================================================== */
+/* ESTILOS EXCLUSIVOS: Configuración de Mi Negocio (PonteVisible Pro)          */
+/* Versión Optimizada - Estilo Uniforme con los Componentes React              */
+/* ========================================================================== */
+
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
+.mn-wrapper {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-family: 'Sora', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #0F172A;
+  background: #F8FAFC;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* ============================================
+   BOTÓN VOLVER
+   ============================================ */
+.mn-btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E3A8A;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.mn-btn-volver:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  background: #FFFFFF;
+  border-color: #93C5FD;
+}
+
+.mn-btn-volver:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+   TARJETA PRINCIPAL
+   ============================================ */
+.mn-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.mn-card:hover {
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   ENCABEZADO
+   ============================================ */
+.mn-header {
+  padding: 28px 32px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+}
+
+.mn-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0066FF, #00F5D4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mn-card:hover .mn-header::before {
+  opacity: 1;
+}
+
+.mn-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.025em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mn-title-icon {
+  font-size: 24px;
+}
+
+.mn-subtitle {
+  font-size: 13px;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+/* ============================================
+   ALERTAS
+   ============================================ */
+.mn-alert {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  animation: slideDown 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mn-alert.success {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.mn-alert.error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.mn-alert-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   PESTAÑAS
+   ============================================ */
+.mn-tabs {
+  display: flex;
+  background: #F8FAFC;
+  border-bottom: 1px solid #F1F5F9;
+  padding: 0 32px;
+  gap: 24px;
+  overflow-x: auto;
+}
+
+.mn-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.mn-tabs::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 2px;
+}
+
+.mn-tabs::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 2px;
+}
+
+.mn-tab-btn {
+  padding: 16px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748B;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.mn-tab-btn:hover {
+  color: #0F172A;
+}
+
+.mn-tab-btn.active {
+  color: #0066FF;
+  border-bottom-color: #0066FF;
+}
+
+.mn-tab-btn .tab-icon {
+  font-size: 14px;
+}
+
+.mn-tab-badge {
+  font-size: 10px;
+  font-weight: 800;
+  background: #E2E8F0;
+  color: #64748B;
+  padding: 2px 8px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.mn-tab-btn.active .mn-tab-badge {
+  background: #0066FF;
+  color: #FFFFFF;
+}
+
+/* ============================================
+   FORMULARIO
+   ============================================ */
+.mn-form {
+  padding: 32px;
+}
+
+/* ============================================
+   CAJA DE INFORMACIÓN
+   ============================================ */
+.mn-info-box {
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border: 1px solid #BFDBFE;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  transition: all 0.3s ease;
+}
+
+.mn-info-box:hover {
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.08);
+}
+
+.mn-info-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #0066FF, #0052CC);
+  color: #FFFFFF;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.25);
+}
+
+.mn-info-text h4 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1E3A8A;
+  margin: 0 0 4px 0;
+}
+
+.mn-info-text p {
+  font-size: 13px;
+  color: #1E40AF;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ============================================
+   GRUPO DE CAMPOS
+   ============================================ */
+.mn-field-group {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mn-field-group:hover {
+  border-color: #CBD5E1;
+}
+
+.mn-field-group:focus-within {
+  border-color: #0066FF;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.06);
+}
+
+.mn-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.mn-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mn-label-required {
+  color: #EF4444;
+  font-weight: 900;
+}
+
+/* ============================================
+   BOTÓN DE AYUDA
+   ============================================ */
+.mn-help-btn {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0066FF;
+  background: #FFFFFF;
+  border: 1px solid #BFDBFE;
+  padding: 4px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.mn-help-btn:hover {
+  background: #EFF6FF;
+  border-color: #93C5FD;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+.mn-tooltip-card {
+  background: #0F172A;
+  color: #F8FAFC;
+  padding: 16px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15);
+  border: 1px solid #334155;
+  line-height: 1.6;
+  animation: slideDown 0.3s ease;
+}
+
+.mn-tooltip-title {
+  font-weight: 700;
+  color: #60A5FA;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mn-tooltip-example {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: #1E293B;
+  color: #34D399;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid #475569;
+  font-size: 12px;
+}
+
+/* ============================================
+   INPUTS Y TEXTAREAS
+   ============================================ */
+.mn-input,
+.mn-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border: 2px solid #CBD5E1;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #0F172A;
+  box-sizing: border-box;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.mn-input:hover,
+.mn-textarea:hover {
+  border-color: #94A3B8;
+}
+
+.mn-input:focus,
+.mn-textarea:focus {
+  border-color: #0066FF;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+}
+
+.mn-input::placeholder,
+.mn-textarea::placeholder {
+  color: #94A3B8;
+}
+
+.mn-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.mn-textarea.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* ============================================
+   TEXTO DE AYUDA
+   ============================================ */
+.mn-help-text {
+  font-size: 12px;
+  color: #64748B;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mn-help-text .icon {
+  font-size: 14px;
+}
+
+/* ============================================
+   GRID 2 COLUMNAS
+   ============================================ */
+.mn-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* ============================================
+   PIE DE FORMULARIO
+   ============================================ */
+.mn-footer-actions {
+  padding-top: 24px;
+  border-top: 1px solid #F1F5F9;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ============================================
+   BOTÓN GUARDAR
+   ============================================ */
+.mn-btn-save {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #0066FF, #0052CC);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 102, 255, 0.25);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mn-btn-save:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0052CC, #0044AA);
+  box-shadow: 0 8px 28px rgba(0, 102, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.mn-btn-save:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.mn-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.mn-btn-save .spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #FFFFFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   BOTÓN CANCELAR / SECUNDARIO
+   ============================================ */
+.mn-btn-secondary {
+  padding: 12px 24px;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.mn-btn-secondary:hover {
+  background: #E2E8F0;
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   ESTADOS DE CARGA
+   ============================================ */
+.mn-loading {
+  text-align: center;
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.mn-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #E2E8F0;
+  border-top: 4px solid #0066FF;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.mn-loading-text {
+  font-size: 14px;
+  color: #64748B;
+  font-weight: 600;
+}
+
+/* ============================================
+   ESTADO VACÍO
+   ============================================ */
+.mn-empty {
+  text-align: center;
+  padding: 60px 20px;
+  background: #F8FAFC;
+  border-radius: 16px;
+  border: 2px dashed #E2E8F0;
+}
+
+.mn-empty-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.mn-empty-text {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADA
+   ============================================ */
+.mn-tabs::-webkit-scrollbar,
+.mn-wrapper::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.mn-tabs::-webkit-scrollbar-track,
+.mn-wrapper::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 2px;
+}
+
+.mn-tabs::-webkit-scrollbar-thumb,
+.mn-wrapper::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 2px;
+}
+
+.mn-tabs::-webkit-scrollbar-thumb:hover,
+.mn-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .mn-wrapper {
+    margin: 20px auto;
+    padding: 0 16px;
+  }
+
+  .mn-card {
+    border-radius: 20px;
+  }
+
+  .mn-header {
+    padding: 20px 24px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mn-title {
+    font-size: 18px;
+  }
+
+  .mn-tabs {
+    padding: 0 16px;
+    gap: 16px;
+  }
+
+  .mn-tab-btn {
+    font-size: 12px;
+    padding: 14px 4px;
+  }
+
+  .mn-form {
+    padding: 24px;
+  }
+
+  .mn-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .mn-btn-volver {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .mn-footer-actions {
+    flex-direction: column;
+  }
+
+  .mn-btn-save,
+  .mn-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .mn-info-box {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .mn-wrapper {
+    margin: 12px auto;
+    padding: 0 12px;
+  }
+
+  .mn-header {
+    padding: 16px;
+    border-radius: 0;
+  }
+
+  .mn-title {
+    font-size: 16px;
+  }
+
+  .mn-subtitle {
+    font-size: 12px;
+  }
+
+  .mn-tabs {
+    padding: 0 12px;
+    gap: 12px;
+  }
+
+  .mn-tab-btn {
+    font-size: 11px;
+    padding: 12px 2px;
+  }
+
+  .mn-form {
+    padding: 16px;
+  }
+
+  .mn-field-group {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .mn-input,
+  .mn-textarea {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+
+  .mn-btn-save {
+    font-size: 12px;
+    padding: 10px 20px;
+  }
+
+  .mn-info-box {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .mn-info-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .mn-tooltip-card {
+    font-size: 12px;
+    padding: 14px;
+  }
+}
