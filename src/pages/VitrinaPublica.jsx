@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../config/supabase';
+import SEO from '../components/SEO';
 
 // Paletas Oficiales del Sistema
 const PALETAS_SISTEMA = [
@@ -35,10 +36,26 @@ export default function VitrinaPublica({ businessId, onVolver }) {
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
+  const [lightboxAbierto, setLightboxAbierto] = useState(false);
 
   useEffect(() => {
     cargarDatosVitrina();
   }, [businessId]);
+
+  // Cierra el lightbox (y de paso el modal) con la tecla Escape.
+  // Prioridad: si el lightbox está abierto, se cierra primero; si no, se cierra el modal.
+  useEffect(() => {
+    const manejarEscape = (e) => {
+      if (e.key !== 'Escape') return;
+      if (lightboxAbierto) {
+        setLightboxAbierto(false);
+      } else if (itemSeleccionado) {
+        setItemSeleccionado(null);
+      }
+    };
+    window.addEventListener('keydown', manejarEscape);
+    return () => window.removeEventListener('keydown', manejarEscape);
+  }, [lightboxAbierto, itemSeleccionado]);
 
   const formatearMoneda = (valor) => {
     const num = Number(valor);
@@ -170,6 +187,52 @@ export default function VitrinaPublica({ businessId, onVolver }) {
     return cumpleTipo && cumpleCat && cumpleBusqueda;
   });
 
+  // ============================================
+  // Datos de SEO / Datos Estructurados (Schema.org)
+  // ============================================
+  const nombreNegocio = perfil?.business_name || perfil?.name || 'Establecimiento en PonteVisible';
+  const slugNegocio = String(nombreNegocio)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '') || 'vitrina';
+  const canonicalUrl = `https://pontevisible.com/${slugNegocio}`;
+  const telefonoLimpio = (perfil?.phone || perfil?.whatsapp || '')
+    .replace(/[^\d+]/g, '');
+
+  // Productos destacados para el carrusel de ofertas
+  const itemsDestacados = (items || [])
+    .filter(item => item.is_active !== false && item.image_url && item.image_url !== 'https://via.placeholder.com/300?text=Sin+Foto')
+    .slice(0, 8);
+
+  const jsonLdLocalBusiness = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: nombreNegocio,
+    description: perfil?.description || perfil?.tagline || 'Negocio verificado en PonteVisible.',
+    url: canonicalUrl,
+    image: perfil?.logo_url || imagenFachada || undefined,
+    telephone: telefonoLimpio || undefined,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: perfil?.address || undefined,
+      addressLocality: perfil?.city || undefined,
+      addressRegion: perfil?.department || undefined,
+      addressCountry: 'CO'
+    },
+    ...(perfil?.schedule
+      ? { openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', description: perfil.schedule }] }
+      : {}),
+    ...(() => {
+      const urls = [];
+      if (perfil?.website) urls.push(String(perfil.website).startsWith('http') ? perfil.website : `https://${perfil.website}`);
+      if (perfil?.instagram) urls.push(`https://instagram.com/${String(perfil.instagram).replace('@', '')}`);
+      if (perfil?.facebook) urls.push(String(perfil.facebook).startsWith('http') ? perfil.facebook : `https://facebook.com/${perfil.facebook}`);
+      return urls.length > 0 ? { sameAs: urls } : {};
+    })()
+  };
+
   if (cargando) {
     return (
       <div className="cargando-container" role="status" aria-live="polite">
@@ -190,7 +253,18 @@ export default function VitrinaPublica({ businessId, onVolver }) {
   }
 
   return (
-    <div className="vitrina-container" role="main" aria-labelledby="vitrina-title">
+    <>
+      <SEO
+        title={`${nombreNegocio} — Vitrina Oficial | PonteVisible`}
+        description={perfil?.description || perfil?.tagline || `Descubre los productos y servicios de ${nombreNegocio} y contacta directamente.`}
+        canonical={canonicalUrl}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdLocalBusiness) }}
+      />
+
+      <div className="vitrina-container" role="main" aria-labelledby="vitrina-title">
       <div className="vitrina-wrapper">
         
         {/* 1. BARRA SUPERIOR */}
@@ -294,7 +368,7 @@ export default function VitrinaPublica({ businessId, onVolver }) {
                   <span>
                     📍 <strong>Ubicación:</strong> {perfil?.address ? `${perfil.address} — ` : ''}
                     <strong className="city-highlight">{perfil?.city || 'Funza'}</strong>
-                    {perfil?.department ? `, ${perfil.department}` : ''}
+                    {perfil?.sector ? `, ${perfil.sector}` : ''}
                   </span>
                 )}
                 {perfil?.schedule && <span>🕒 <strong>Horario:</strong> {perfil.schedule}</span>}
@@ -497,75 +571,83 @@ export default function VitrinaPublica({ businessId, onVolver }) {
         {itemSeleccionado && (
           <div 
             onClick={() => setItemSeleccionado(null)}
-            className="modal-backdrop"
+            className="modal-overlay"
           >
             <div 
               onClick={(e) => e.stopPropagation()}
               className="modal-content"
             >
-              <button 
-                type="button"
-                onClick={() => setItemSeleccionado(null)}
-                className="modal-close"
-              >
-                ✕
-              </button>
+              {/* BOTÓN DE CERRAR (Visible y elegante) */}
+            <button 
+              className="close-btn" 
+              onClick={() => setItemSeleccionado(null)}
+              aria-label="Cerrar"
+              type="button"
+            >
+              ✕
+            </button>
 
-              <div className="modal-img-container">
-                {itemSeleccionado.image_url && itemSeleccionado.image_url !== 'https://via.placeholder.com/300?text=Sin+Foto' ? (
+            {/* HEADER: Imagen del producto (clic para ampliar) */}
+            <div className="modal-image-container">
+              {itemSeleccionado.image_url && itemSeleccionado.image_url !== 'https://via.placeholder.com/300?text=Sin+Foto' ? (
+                <button
+                  type="button"
+                  className="zoom-trigger"
+                  onClick={() => setLightboxAbierto(true)}
+                  aria-label="Ampliar imagen"
+                >
                   <img 
                     src={itemSeleccionado.image_url} 
                     alt={itemSeleccionado.title || itemSeleccionado.name} 
                   />
-                ) : (
-                  <span role="img" aria-label={itemSeleccionado.item_type === 'servicio' ? 'Servicio' : 'Producto'}>
-                    {itemSeleccionado.item_type === 'servicio' ? '🛠️' : '📦'}
-                  </span>
-                )}
-              </div>
+                  <span className="zoom-icon" aria-hidden="true">🔍</span>
+                </button>
+              ) : (
+                <span role="img" aria-label={itemSeleccionado.item_type === 'servicio' ? 'Servicio' : 'Producto'}>
+                  {itemSeleccionado.item_type === 'servicio' ? '🛠️' : '📦'}
+                </span>
+              )}
+            </div>
 
-              <div className="modal-badges">
-                <span className={`modal-type-badge ${itemSeleccionado.item_type === 'servicio' ? 'servicio' : 'producto'}`}>
+            {/* BODY: Texto del producto */}
+            <div className="modal-body">
+              <div className="product-badges">
+                <span className={`badge ${itemSeleccionado.item_type === 'servicio' ? 'badge-servicio' : 'badge-producto'}`}>
                   {itemSeleccionado.item_type === 'servicio' ? '🛠️ Servicio Profesional' : '📦 Producto Físico'}
                 </span>
 
                 {itemSeleccionado.item_type !== 'servicio' && (
-                  <span className={`modal-stock-badge ${(itemSeleccionado.stock || 0) > 0 ? 'in-stock' : 'out-stock'}`}>
+                  <span className={`badge badge-stock ${(itemSeleccionado.stock || 0) > 0 ? 'in-stock' : 'out-stock'}`}>
                     {(itemSeleccionado.stock || 0) > 0 ? `Stock: ${itemSeleccionado.stock} disponibles` : '🚫 Agotado'}
                   </span>
                 )}
               </div>
 
-              <h2 className="modal-title">
+              <h2 className="product-title">
                 {itemSeleccionado.title || itemSeleccionado.name}
               </h2>
-
-              <span className="modal-price">
+              <p className="product-price">
                 {formatearMoneda(itemSeleccionado.price || itemSeleccionado.valor_de_venta)}
-              </span>
+              </p>
 
-              {itemSeleccionado.description && (
-                <div className="modal-desc-section">
-                  <h4>Detalles y Beneficios:</h4>
-                  <p>{itemSeleccionado.description}</p>
-                </div>
-              )}
+              <div className="product-details">
+                <h3>Detalles y Beneficios:</h3>
+                <p>{itemSeleccionado.description || 'Sin descripción disponible.'}</p>
+              </div>
 
               {(itemSeleccionado.brand || itemSeleccionado.compatibility || itemSeleccionado.specialty || itemSeleccionado.modality) && (
-                <div className="modal-attributes-box">
+                <div className="product-details product-attributes">
                   {itemSeleccionado.brand && (
-                    <div>🏷️ <strong>Marca / Fabricante:</strong> {itemSeleccionado.brand}</div>
+                    <p>🏷️ <strong>Marca / Fabricante:</strong> {itemSeleccionado.brand}</p>
                   )}
                   {itemSeleccionado.compatibility && (
-                    <div className="compatibility-text">
-                      🎯 <strong>¿Para qué sirve? Usos y Aplicaciones:</strong> {itemSeleccionado.compatibility}
-                    </div>
+                    <p>🎯 <strong>¿Para qué sirve? Usos y Aplicaciones:</strong> {itemSeleccionado.compatibility}</p>
                   )}
                   {itemSeleccionado.specialty && (
-                    <div>👨‍🔧 <strong>Especialista a Cargo:</strong> {itemSeleccionado.specialty}</div>
+                    <p>👨‍🔧 <strong>Especialista a Cargo:</strong> {itemSeleccionado.specialty}</p>
                   )}
                   {itemSeleccionado.modality && (
-                    <div>📍 <strong>Modalidad:</strong> {itemSeleccionado.modality === 'presencial' ? 'Atención en Local' : itemSeleccionado.modality === 'domicilio' ? 'A Domicilio' : 'Virtual'}</div>
+                    <p>📍 <strong>Modalidad:</strong> {itemSeleccionado.modality === 'presencial' ? 'Atención en Local' : itemSeleccionado.modality === 'domicilio' ? 'A Domicilio' : 'Virtual'}</p>
                   )}
                 </div>
               )}
@@ -579,8 +661,152 @@ export default function VitrinaPublica({ businessId, onVolver }) {
                 {(itemSeleccionado.item_type === 'servicio' || (itemSeleccionado.stock || 0) > 0) ? '💬 Solicitar y Pedir por WhatsApp' : '🚫 Producto Agotado'}
               </button>
             </div>
+            </div>
+
+            {/* LIGHTBOX: Visor a pantalla completa (hijo del overlay para no recortarse por el overflow del panel) */}
+            {lightboxAbierto && itemSeleccionado.image_url && (
+              <div
+                className="lightbox-overlay"
+                onClick={(e) => { e.stopPropagation(); setLightboxAbierto(false); }}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Imagen ampliada"
+              >
+                <button
+                  type="button"
+                  className="lightbox-close"
+                  onClick={(e) => { e.stopPropagation(); setLightboxAbierto(false); }}
+                  aria-label="Cerrar imagen ampliada"
+                >
+                  ✕
+                </button>
+                <img
+                  className="lightbox-image"
+                  src={itemSeleccionado.image_url}
+                  alt={itemSeleccionado.title || itemSeleccionado.name}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            )}
           </div>
         )}
+
+        {/* 7. CARRUSEL DE DESTACADOS (OFERTAS) */}
+        {itemsDestacados.length > 0 && (
+          <div className="destacados-section">
+            <div className="destacados-header">
+              <h2 className="destacados-title">⭐ Destacados y Ofertas</h2>
+              <span className="destacados-subtitle">Lo más relevante de este negocio</span>
+            </div>
+            <div className="destacados-track">
+              {itemsDestacados.map(item => {
+                const esServicio = item.item_type === 'servicio';
+                const nombreItem = item.title || item.name || '';
+                return (
+                  <div
+                    key={item.id}
+                    className="destacado-card"
+                    onClick={() => setItemSeleccionado(item)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setItemSeleccionado(item); }}
+                  >
+                    <div className="destacado-imagen">
+                      {item.image_url && item.image_url !== 'https://via.placeholder.com/300?text=Sin+Foto' ? (
+                        <img src={item.image_url} alt={nombreItem} loading="lazy" />
+                      ) : (
+                        <span className="destacado-fallback" role="img" aria-label={esServicio ? 'Servicio' : 'Producto'}>
+                          {esServicio ? '🛠️' : '📦'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="destacado-body">
+                      <span className="destacado-tipo">
+                        {esServicio ? '🛠️ Servicio' : '📦 Producto'}
+                      </span>
+                      <h4 className="destacado-nombre">{nombreItem}</h4>
+                      <div className="destacado-footer">
+                        <span className="destacado-precio">{formatearMoneda(item.price || item.valor_de_venta)}</span>
+                        <button type="button" className="destacado-cta" onClick={(e) => { e.stopPropagation(); handleContactarWhatsApp(item); }}>
+                          Pedir 💬
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 8. PIE DE VITRINA INSTITUCIONAL */}
+        <footer className="vitrina-footer" role="contentinfo">
+          <div className="footer-brand">
+            <span className="footer-logo">
+              <LogoPVPill color={colorPrimario} />
+            </span>
+            <div>
+              <strong className="footer-nombre">{nombreNegocio}</strong>
+              <span className="footer-bajo">Vitrina oficial en PonteVisible</span>
+            </div>
+          </div>
+
+          <div className="footer-columns">
+            <div className="footer-col">
+              <span className="footer-col-title">Canales</span>
+              {perfil?.phone || perfil?.whatsapp ? (
+                <a
+                  className="footer-link"
+                  href={`https://wa.me/${telefonoLimpio || ''}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  💬 WhatsApp
+                </a>
+              ) : null}
+              {perfil?.phone ? (
+                <a className="footer-link" href={`tel:${telefonoLimpio}`}>📞 Llamar</a>
+              ) : null}
+              {perfil?.address && (
+                <a
+                  className="footer-link"
+                  href={perfil?.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(perfil.address)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  📍 Cómo llegar
+                </a>
+              )}
+            </div>
+
+            {(perfil?.instagram || perfil?.facebook || perfil?.website) && (
+              <div className="footer-col">
+                <span className="footer-col-title">Redes</span>
+                {perfil?.instagram && (
+                  <a className="footer-link" href={`https://instagram.com/${String(perfil.instagram).replace('@', '')}`} target="_blank" rel="noreferrer">📸 Instagram</a>
+                )}
+                {perfil?.facebook && (
+                  <a className="footer-link" href={String(perfil.facebook).startsWith('http') ? perfil.facebook : `https://facebook.com/${perfil.facebook}`} target="_blank" rel="noreferrer">🌐 Facebook</a>
+                )}
+                {perfil?.website && (
+                  <a className="footer-link" href={String(perfil.website).startsWith('http') ? perfil.website : `https://${perfil.website}`} target="_blank" rel="noreferrer">🔗 Web Oficial</a>
+                )}
+              </div>
+            )}
+
+            <div className="footer-col">
+              <span className="footer-col-title">Negocio</span>
+              {perfil?.city ? <span className="footer-meta">📍 {perfil.city}{perfil?.department ? `, ${perfil.department}` : ''}</span> : null}
+              {perfil?.schedule ? <span className="footer-meta">🕒 {perfil.schedule}</span> : null}
+              <span className="footer-meta footer-shield">🛡️ Comercio Verificado PonteVisible</span>
+            </div>
+          </div>
+
+          <div className="footer-bottom">
+            <span>© {new Date().getFullYear()} {nombreNegocio} · PonteVisible</span>
+            <span className="footer-legal">Hazte visible. Conecta. Crece.</span>
+          </div>
+        </footer>
 
       </div>
 
@@ -1211,178 +1437,262 @@ export default function VitrinaPublica({ businessId, onVolver }) {
           cursor: not-allowed;
         }
 
-        .modal-backdrop {
+        /* Fondo oscuro detrás del modal */
+        .modal-overlay {
           position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(15, 23, 42, 0.65);
-          backdrop-filter: blur(6px);
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(0, 0, 0, 0.6);
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          overflow-y: auto;
+          z-index: 1000;
+          padding: 40px 16px;
+        }
+
+        /* Contenedor blanco */
+        .modal-content {
+          position: relative;
+          width: 100%;
+          max-width: 500px;
+          background: #FFFFFF;
+          border-radius: 20px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+          padding-bottom: 20px;
+          margin: 2.5rem auto;
+        }
+
+        /* BOTÓN DE CERRAR (Visible y elegante) */
+        .close-btn {
+          position: absolute;
+          top: 32px;
+          right: 32px;
+          z-index: 10;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: rgba(11, 19, 43, 0.8);
+          color: #FFFFFF;
+          border: none;
+          font-size: 18px;
+          font-weight: bold;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          zIndex: 1000;
-          padding: 16px;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+          transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
-        .modal-content {
-          background-color: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          border-radius: 24px;
-          max-width: 560px;
+        .close-btn:hover {
+          background-color: rgba(220, 38, 38, 0.9);
+          transform: scale(1.1);
+        }
+
+        /* Imagen del producto */
+        .modal-image-container {
           width: 100%;
-          max-height: 92vh;
-          overflow-y: auto;
-          padding: 28px;
-          position: relative;
-          box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+          height: 280px;
+          background: linear-gradient(135deg, #F8FAFC, #E2E8F0);
+          border-radius: 20px 20px 0 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-bottom: 20px;
         }
 
-        .modal-close {
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          background: #F1F5F9;
+        .modal-image-container span {
+          font-size: 64px;
+        }
+
+        /* Botón que envuelve la imagen ampliable (zoom) */
+        .zoom-trigger {
           border: none;
-          border-radius: 50%;
+          background: transparent;
+          padding: 0;
+          margin: 0;
+          cursor: zoom-in;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+          line-height: 0;
+        }
+
+        .zoom-trigger img {
+          max-width: 80%;
+          max-height: 90%;
+          object-fit: contain;
+          transition: transform 0.2s ease;
+        }
+
+        .zoom-trigger:hover img {
+          transform: scale(1.03);
+        }
+
+        .zoom-icon {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          background: rgba(11, 19, 43, 0.75);
+          color: #FFFFFF;
           width: 34px;
           height: 34px;
-          font-size: 15px;
-          font-weight: 900;
-          cursor: pointer;
-          color: #475569;
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          zIndex: 10;
-          transition: background-color 0.2s ease;
+          font-size: 16px;
+          line-height: 1;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          pointer-events: none;
         }
 
-        .modal-close:hover {
-          background: #E2E8F0;
+        .modal-image-container:hover .zoom-icon,
+        .zoom-trigger:hover .zoom-icon {
+          opacity: 1;
         }
 
-        .modal-img-container {
-          height: 210px;
-          background-color: #F8FAFC;
-          border-radius: 16px;
+        /* LIGHTBOX: Visor a pantalla completa */
+        .lightbox-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 60;
+          background-color: rgba(0, 0, 0, 0.95);
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 16px;
-          padding: 12px;
-          border: 1px solid #F1F5F9;
+          overflow-y: auto;
+          cursor: zoom-out;
         }
 
-        .modal-img-container img {
-          max-width: 100%;
-          max-height: 100%;
+        .lightbox-image {
+          max-width: 92%;
+          max-height: 92%;
           object-fit: contain;
+          cursor: zoom-out;
         }
 
-        .modal-img-container span {
-          font-size: 56px;
-        }
-
-        .modal-badges {
+        .lightbox-close {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          z-index: 70;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.9);
+          color: #0B132B;
+          border: none;
+          font-size: 20px;
+          font-weight: bold;
+          cursor: pointer;
           display: flex;
-          gap: 8px;
           align-items: center;
-          margin-bottom: 8px;
+          justify-content: center;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+          transition: background-color 0.2s ease, transform 0.2s ease;
         }
 
-        .modal-type-badge {
-          font-size: 11px;
-          font-weight: 900;
+        .lightbox-close:hover {
+          background-color: #FFFFFF;
+          transform: scale(1.1);
+        }
+
+        /* Cuerpo del texto */
+        .modal-body {
+          padding: 0 24px;
+        }
+
+        .product-badges {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 10px;
+          flex-wrap: wrap;
+        }
+
+        .badge {
+          background: #E6FFFA;
+          color: #0B132B;
+          font-size: 12px;
+          font-weight: 700;
           padding: 4px 10px;
-          border-radius: 8px;
+          border-radius: 20px;
         }
 
-        .modal-type-badge.servicio {
-          background-color: #ECFDF5;
-          color: #047857;
+        .badge.badge-producto,
+        .badge.badge-servicio {
+          background: #E6FFFA;
         }
 
-        .modal-type-badge.producto {
-          background-color: #EFF6FF;
-          color: ${colorPrimario};
-        }
-
-        .modal-stock-badge {
-          font-size: 11px;
-          font-weight: 800;
-          padding: 4px 10px;
-          border-radius: 8px;
-        }
-
-        .modal-stock-badge.in-stock {
-          background-color: #DCFCE7;
+        .badge.badge-stock.in-stock {
+          background: #DCFCE7;
           color: #15803D;
         }
 
-        .modal-stock-badge.out-stock {
-          background-color: #FEE2E2;
+        .badge.badge-stock.out-stock {
+          background: #FEE2E2;
           color: #B91C1C;
         }
 
-        .modal-title {
-          font-size: 22px;
-          font-weight: 900;
-          color: #0F172A;
-          margin: 8px 0 4px 0;
-          text-align: left;
-        }
-
-        .modal-price {
+        .product-title {
           font-size: 24px;
-          font-weight: 900;
-          color: #059669;
-          display: block;
-          text-align: left;
-          margin-bottom: 14px;
-        }
-
-        .modal-desc-section {
-          margin-bottom: 16px;
-          text-align: left;
-        }
-
-        .modal-desc-section h4 {
-          font-size: 12px;
           font-weight: 800;
-          color: #64748B;
-          text-transform: uppercase;
-          margin: 0 0 6px 0;
+          color: #0B132B;
+          line-height: 1.3;
+          margin: 0 0 10px 0;
+          word-wrap: break-word;
+          white-space: normal;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
 
-        .modal-desc-section p {
-          font-size: 13.5px;
-          color: #475569;
+        .product-price {
+          font-size: 32px;
+          font-weight: 900;
+          color: #0066FF;
+          margin: 0 0 20px 0;
+        }
+
+        .product-details {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          padding: 16px;
+          max-width: 100%;
+          width: 100%;
+          box-sizing: border-box;
+          margin-bottom: 16px;
+        }
+
+        .product-details h3 {
+          font-size: 14px;
+          color: #0B132B;
+          margin: 0 0 8px 0;
+          text-transform: uppercase;
+        }
+
+        .product-details p {
+          font-size: 14px;
+          color: #4A5568;
           line-height: 1.6;
           margin: 0;
         }
 
-        .modal-attributes-box {
-          background-color: #F8FAFC;
-          padding: 16px;
-          border-radius: 14px;
-          border: 1px solid #E2E8F0;
-          margin-bottom: 20px;
-          font-size: 13px;
-          display: grid;
-          gap: 8px;
-          color: #334155;
-          text-align: left;
+        .product-attributes p:not(:last-child) {
+          margin-bottom: 8px;
         }
 
-        .compatibility-text {
-          line-height: 1.5;
-        }
-
+        /* Botón de acción (agregar al carrito / pedir) */
         .modal-submit-btn {
           width: 100%;
-          padding: 14px;
+          max-width: 100%;
+          box-sizing: border-box;
+          padding: 16px;
           border: none;
           border-radius: 12px;
           font-size: 14px;
@@ -1395,14 +1705,16 @@ export default function VitrinaPublica({ businessId, onVolver }) {
         }
 
         .modal-submit-btn.active {
-          background-color: #059669;
+          background-color: #0066FF;
           color: #FFFFFF;
           cursor: pointer;
-          box-shadow: 0 4px 14px rgba(5,150,105,0.3);
+          box-shadow: 0 4px 14px rgba(0, 102, 255, 0.3);
         }
 
         .modal-submit-btn.active:hover {
-          background-color: #047857;
+          background-color: #0050CC;
+          box-shadow: 0 8px 24px rgba(0, 102, 255, 0.35);
+          transform: translateY(-2px);
         }
 
         .modal-submit-btn.disabled {
@@ -1410,6 +1722,246 @@ export default function VitrinaPublica({ businessId, onVolver }) {
           color: #FFFFFF;
           cursor: not-allowed;
           box-shadow: none;
+        }
+
+        /* ----- CARRUSEL DE DESTACADOS ----- */
+        .destacados-section {
+          margin: 32px 0 8px 0;
+        }
+
+        .destacados-header {
+          display: flex;
+          align-items: baseline;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-bottom: 16px;
+        }
+
+        .destacados-title {
+          font-size: 20px;
+          font-weight: 900;
+          color: #0F172A;
+          margin: 0;
+        }
+
+        .destacados-subtitle {
+          font-size: 13px;
+          color: #64748B;
+          font-weight: 600;
+        }
+
+        .destacados-track {
+          display: flex;
+          gap: 16px;
+          overflow-x: auto;
+          padding: 6px 4px 16px 4px;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .destacados-track::-webkit-scrollbar {
+          height: 8px;
+        }
+
+        .destacados-track::-webkit-scrollbar-thumb {
+          background-color: #CBD5E1;
+          border-radius: 8px;
+        }
+
+        .destacado-card {
+          flex: 0 0 260px;
+          scroll-snap-align: start;
+          background-color: #FFFFFF;
+          border-radius: 18px;
+          border: 1px solid #E2E8F0;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 12px rgba(11,19,43,0.04);
+        }
+
+        .destacado-card:hover {
+          transform: translateY(-4px);
+          border-color: ${colorPrimario};
+          box-shadow: 0 12px 24px ${colorPrimario}18;
+        }
+
+        .destacado-imagen {
+          height: 170px;
+          background-color: #F8FAFC;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+
+        .destacado-imagen img {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+
+        .destacado-fallback {
+          font-size: 42px;
+        }
+
+        .destacado-body {
+          padding: 14px 16px 16px 16px;
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+        }
+
+        .destacado-tipo {
+          font-size: 10.5px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          color: ${colorPrimario};
+          margin-bottom: 4px;
+        }
+
+        .destacado-nombre {
+          font-size: 14px;
+          font-weight: 800;
+          color: #0F172A;
+          margin: 0 0 12px 0;
+          line-height: 1.35;
+        }
+
+        .destacado-footer {
+          margin-top: auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .destacado-precio {
+          font-size: 15px;
+          font-weight: 900;
+          color: #0F172A;
+        }
+
+        .destacado-cta {
+          padding: 8px 16px;
+          border: none;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #00F5D4, #059669);
+          color: #060B18;
+          font-size: 12px;
+          font-weight: 900;
+          cursor: pointer;
+          transition: transform 0.2s ease;
+        }
+
+        .destacado-cta:hover {
+          transform: translateY(-1px);
+        }
+
+        /* ----- PIE DE VITRINA INSTITUCIONAL ----- */
+        .vitrina-footer {
+          margin-top: 40px;
+          background-color: #0B132B;
+          color: #E2E8F0;
+          border-radius: 24px;
+          padding: 34px 32px 22px 32px;
+        }
+
+        .footer-brand {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 24px;
+        }
+
+        .footer-logo {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 46px;
+          height: 46px;
+          border-radius: 14px;
+          background-color: rgba(0, 245, 212, 0.12);
+          border: 1px solid rgba(0, 245, 212, 0.3);
+        }
+
+        .footer-nombre {
+          display: block;
+          font-size: 16px;
+          font-weight: 900;
+          color: #FFFFFF;
+        }
+
+        .footer-bajo {
+          display: block;
+          font-size: 12px;
+          color: #94A3B8;
+          margin-top: 2px;
+        }
+
+        .footer-columns {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 24px;
+          margin-bottom: 26px;
+        }
+
+        .footer-col {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .footer-col-title {
+          font-size: 11px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: ${colorAcento};
+          margin-bottom: 4px;
+        }
+
+        .footer-link {
+          color: #CBD5E1;
+          font-size: 13px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+          color: ${colorAcento};
+        }
+
+        .footer-meta {
+          font-size: 13px;
+          color: #CBD5E1;
+          font-weight: 600;
+        }
+
+        .footer-shield {
+          color: #94A3B8;
+          font-size: 12px;
+        }
+
+        .footer-bottom {
+          border-top: 1px solid rgba(255, 255, 255, 0.12);
+          padding-top: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 8px;
+          font-size: 12px;
+          color: #94A3B8;
+        }
+
+        .footer-legal {
+          font-weight: 800;
+          color: ${colorAcento};
         }
 
         @media (max-width: 768px) {
@@ -1427,8 +1979,19 @@ export default function VitrinaPublica({ businessId, onVolver }) {
             max-width: 100%;
             flex-direction: column;
           }
+          .vitrina-footer {
+            padding: 26px 20px 18px 20px;
+          }
+          .footer-bottom {
+            flex-direction: column;
+            text-align: center;
+          }
+          .destacado-card {
+            flex: 0 0 240px;
+          }
         }
       `}</style>
     </div>
+    </>
   );
 }

@@ -5,15 +5,19 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    // OCULTA LOS SOURCEMAPS EN PRODUCCIÓN (evita que se vea tu código fuente)
     sourcemap: false,
     rollupOptions: {
       output: {
         // DIVIDE EL BUNDLE: React y ReactDOM van en un archivo aparte para cargar más rápido
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-        }
-      }
-    }
-  }
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            return 'deps';
+          }
+        },
+      },
+    },
+  },
 })

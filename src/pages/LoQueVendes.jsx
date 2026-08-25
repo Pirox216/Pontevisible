@@ -118,7 +118,7 @@ export default function LoQueVendes({ onVolver }) {
     e.preventDefault();
 
     if (!categoryId) {
-      setMessage('❌ La categoría es obligatoria para garantizar la visibilidad SEO e IA.');
+      setMessage('❌ La categoría es obligatoria para garantizar tu visibilidad en Google e IA.');
       return;
     }
 
@@ -863,7 +863,7 @@ export default function LoQueVendes({ onVolver }) {
                 onChange={(e) => setItemType(e.target.value)}
                 className="form-select"
               >
-                <option value="product">📦 Producto Físico (SEO & Compatibilidad)</option>
+                <option value="product">📦 Producto Físico (Visible en Buscadores)</option>
                 <option value="service">🛠️ Servicio Profesional (Especialista & Confianza)</option>
               </select>
             </div>

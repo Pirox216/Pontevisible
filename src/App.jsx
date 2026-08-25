@@ -17,6 +17,8 @@ import CentroAyudaGerencial from './pages/CentroAyudaGerencial';
 import AsistenteCrecimiento from './pages/AsistenteCrecimiento';
 import VitrinaPublica from './pages/VitrinaPublica';
 import DiscoveryFeed from './pages/DiscoveryFeed';
+import DatosDelLocal from './pages/DatosDelLocal';
+import LoQueVendes from './pages/LoQueVendes';
 
 // Isotipo y Logotipo Oficial Vectorial según Brand Book PonteVisible
 export function LogoPonteVisible({ size = 38, variant = 'full' }) {
@@ -321,7 +323,7 @@ export default function App() {
     return (
       <DiscoveryFeed
         businessId={sesion?.user?.id}
-        onVolver={() => setModuloActivo('menu')}
+        onVolverMenu={() => setModuloActivo('menu')}
         onVerVitrinaNegocio={() => setModuloActivo('vitrina')}
       />
     );
@@ -420,6 +422,8 @@ export default function App() {
         {moduloActivo === 'vitrina' && <VitrinaPublica businessId={businessId} onVolver={() => setModuloActivo('menu')} />}
         {moduloActivo === 'gerencial' && <CentroAyudaGerencial businessId={businessId} onVolverMenu={() => setModuloActivo('menu')} />}
         {moduloActivo === 'asistente' && <AsistenteCrecimiento businessId={businessId} onVolverMenu={() => setModuloActivo('menu')} />}
+        {moduloActivo === 'sedes' && <DatosDelLocal businessId={businessId} onVolver={() => setModuloActivo('menu')} />}
+        {moduloActivo === 'publicar' && <LoQueVendes onVolver={() => setModuloActivo('menu')} />}
 
         {moduloActivo === 'menu' && (
           <div>
@@ -509,6 +513,22 @@ export default function App() {
                 </div>
               </div>
 
+              {/* 1-B. SEDES Y CANALES */}
+              <div onClick={() => setModuloActivo('sedes')} style={{ backgroundColor: '#FFFFFF', borderRadius: '24px', padding: '28px', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.02)', cursor: 'pointer', transition: 'transform 0.3s', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: '#FFFFFF', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '28px' }}>📍</span>
+                </div>
+                <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', margin: 0 }}>Sedes y Canales</h3>
+                  <span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 12px', borderRadius: '100px', backgroundColor: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0' }}>✅ Listo</span>
+                </div>
+                <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: '0 0 20px 0', flexGrow: 1 }}>Ubicación, georreferenciación y canales de contacto de cada punto.</p>
+                <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#0066FF' }}>Gestionar →</span>
+                </div>
+              </div>
+
+
               {/* 2. CATÁLOGO */}
               <div onClick={() => setModuloActivo('catalogo')} style={{ backgroundColor: '#FFFFFF', borderRadius: '24px', padding: '28px', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.02)', cursor: 'pointer', transition: 'transform 0.3s', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: '#FFFFFF', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
@@ -521,6 +541,21 @@ export default function App() {
                 <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: '0 0 20px 0', flexGrow: 1 }}>Publica productos y servicios organizados con atributos de búsqueda y promociones.</p>
                 <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                   <span style={{ fontSize: '13px', fontWeight: '600', color: '#0066FF' }}>Gestionar →</span>
+                </div>
+              </div>
+
+              {/* 2-B. PUBLICAR CATÁLOGO INTELIGENTE */}
+              <div onClick={() => setModuloActivo('publicar')} style={{ backgroundColor: '#FFFFFF', borderRadius: '24px', padding: '28px', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.02)', cursor: 'pointer', transition: 'transform 0.3s', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: '#FFFFFF', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '28px' }}>✨</span>
+                </div>
+                <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', margin: 0 }}>Publicar con Visibilidad</h3>
+                  <span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 12px', borderRadius: '100px', backgroundColor: '#F0FDFA', color: '#0F766E', border: '1px solid #99F6E4' }}>Optimizado</span>
+                </div>
+                <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: '0 0 20px 0', flexGrow: 1 }}>Publica ofertas con atributos listos para buscadores y asistentes de IA.</p>
+                <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#00F5D4' }}>Crear oferta →</span>
                 </div>
               </div>
 
@@ -552,7 +587,7 @@ export default function App() {
                   <Icons.Chart />
                 </div>
                 <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', margin: 0 }}>Oportunidades (OCG)</h3>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', margin: 0 }}>Clientes e Interesados</h3>
                   <span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 12px', borderRadius: '100px', backgroundColor: '#FFF7ED', color: '#C2410C', border: '1px solid #FED7AA' }}>{metricas.contactos} capturadas</span>
                 </div>
                 <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: '0 0 20px 0', flexGrow: 1 }}>Mide interacciones reales: cotizaciones por WhatsApp, llamadas y visitas.</p>

@@ -1,6 +1,7 @@
 // src/components/DiscoveryFeed/DiscoveryFeed.jsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../config/supabase';
+import SEO from '../components/SEO';
 
 // ============================================
 // CONSTANTES
@@ -60,7 +61,7 @@ export default function DiscoveryFeed({ onVolverMenu, onVerVitrinaNegocio }) {
 
       const { data: perfiles, error: perfErr } = await supabase
         .from('business_profiles')
-        .select('user_id, business_name, name, department, city, address, phone, whatsapp, logo_url');
+        .select('user_id, business_name, name, city, address, phone, whatsapp, logo_url');
 
       if (perfErr) console.warn('Aviso perfiles:', perfErr.message);
 
@@ -170,7 +171,12 @@ export default function DiscoveryFeed({ onVolverMenu, onVerVitrinaNegocio }) {
   // RENDERIZADO
   // ============================================
   return (
-    <div className="discovery-container">
+    <>
+      <SEO
+        title="Explorar Negocios | PonteVisible"
+        description="Descubre productos, servicios y proveedores locales verificados. Contacta directamente por WhatsApp."
+      />
+      <div className="discovery-container">
       <style jsx>{`
         /* ============================================
            ESTILOS DEL COMPONENTE DISCOVERY FEED
@@ -545,95 +551,95 @@ export default function DiscoveryFeed({ onVolverMenu, onVerVitrinaNegocio }) {
           font-weight: 700;
         }
 
-        /* ----- MODAL ----- */
+        /* Fondo oscuro detrás del modal */
         .modal-overlay {
           position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(15, 23, 42, 0.65);
-          backdrop-filter: blur(6px);
-          -webkit-backdrop-filter: blur(6px);
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(0, 0, 0, 0.6);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+          padding: 16px;
+        }
+
+        /* Contenedor blanco */
+        .modal-content {
+          position: relative;
+          width: 100%;
+          max-width: 500px;
+          max-height: 90vh;
+          background: #FFFFFF;
+          border-radius: 20px;
+          overflow-y: auto;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+          padding-bottom: 20px;
+        }
+
+        /* BOTÓN DE CERRAR (Visible y elegante) */
+        .close-btn {
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          z-index: 10;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: #0B132B;
+          color: #FFFFFF;
+          border: 2px solid #00F5D4;
+          font-size: 18px;
+          font-weight: bold;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 1000;
-          padding: 16px;
-          animation: fadeIn 0.25s ease;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        .modal-content {
-          background: #FFFFFF;
-          border-radius: 24px;
-          max-width: 540px;
-          width: 100%;
-          max-height: 90vh;
-          overflow-y: auto;
-          padding: 24px;
-          position: relative;
-          animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px) scale(0.97);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        .modal-close {
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          background: #F1F5F9;
-          border: none;
-          border-radius: 50%;
-          width: 32px;
-          height: 32px;
-          font-size: 14px;
-          font-weight: 900;
-          cursor: pointer;
-          transition: all 0.2s ease;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+          transition: transform 0.2s ease;
           font-family: inherit;
         }
 
-        .modal-close:hover {
-          background: #E2E8F0;
-          transform: rotate(90deg);
+        .close-btn:hover {
+          transform: scale(1.1);
+          background-color: #0066FF;
         }
 
+        /* Imagen del producto */
         .modal-image-container {
-          height: 200px;
-          background: #F8FAFC;
-          border-radius: 14px;
+          width: 100%;
+          height: 280px;
+          background: linear-gradient(135deg, #F8FAFC, #E2E8F0);
+          border-radius: 20px 20px 0 0;
           display: flex;
-          align-items: center;
           justify-content: center;
-          margin-bottom: 14px;
-          padding: 10px;
+          align-items: center;
+          margin-bottom: 20px;
         }
 
         .modal-image-container img {
-          max-width: 100%;
-          max-height: 100%;
+          max-width: 80%;
+          max-height: 90%;
           object-fit: contain;
         }
 
+        .modal-image-container span {
+          font-size: 64px;
+        }
+
+        /* Cuerpo del texto */
+        .modal-body {
+          padding: 0 24px;
+        }
+
         .modal-business {
+          max-width: 100%;
+          width: 100%;
+          box-sizing: border-box;
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
           gap: 8px;
-          margin-bottom: 6px;
+          margin-bottom: 10px;
         }
 
         .modal-business-name {
@@ -647,35 +653,61 @@ export default function DiscoveryFeed({ onVolverMenu, onVerVitrinaNegocio }) {
           color: #64748B;
         }
 
-        .modal-title {
-          font-size: 19px;
-          font-weight: 900;
-          margin: 0 0 6px 0;
+        .product-title {
+          font-size: 24px;
+          font-weight: 800;
+          color: #0B132B;
+          line-height: 1.3;
+          margin: 0 0 10px 0;
+          word-wrap: break-word;
+          white-space: normal;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
 
-        .modal-price {
-          font-size: 22px;
+        .product-price {
+          font-size: 32px;
           font-weight: 900;
-          color: #059669;
-          display: block;
-          margin-bottom: 12px;
+          color: #0066FF;
+          margin: 0 0 20px 0;
         }
 
-        .modal-description {
-          font-size: 13px;
-          color: #475569;
-          line-height: 1.5;
-          margin: 0 0 16px 0;
+        .product-details {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          padding: 16px;
+          max-width: 100%;
+          width: 100%;
+          box-sizing: border-box;
+          margin-bottom: 16px;
+        }
+
+        .product-details h3 {
+          font-size: 14px;
+          color: #0B132B;
+          margin: 0 0 8px 0;
+          text-transform: uppercase;
+        }
+
+        .product-details p {
+          font-size: 14px;
+          color: #4A5568;
+          line-height: 1.6;
+          margin: 0;
         }
 
         .btn-modal-contactar {
           width: 100%;
-          padding: 12px;
-          background: #059669;
+          max-width: 100%;
+          box-sizing: border-box;
+          padding: 16px;
+          background: #0066FF;
           color: #FFFFFF;
           border: none;
           border-radius: 12px;
-          font-size: 13.5px;
+          font-size: 14px;
           font-weight: 800;
           cursor: pointer;
           display: flex;
@@ -687,8 +719,9 @@ export default function DiscoveryFeed({ onVolverMenu, onVerVitrinaNegocio }) {
         }
 
         .btn-modal-contactar:hover {
+          background-color: #0050CC;
           transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(5, 150, 105, 0.3);
+          box-shadow: 0 8px 24px rgba(0, 102, 255, 0.35);
         }
 
         .btn-modal-contactar:active {
@@ -752,15 +785,16 @@ export default function DiscoveryFeed({ onVolverMenu, onVerVitrinaNegocio }) {
           }
 
           .modal-content {
-            padding: 20px;
+            padding: 0;
           }
 
-          .modal-title {
+          .product-title {
             font-size: 17px;
           }
 
-          .modal-price {
+          .product-price {
             font-size: 19px;
+            margin: 10px 0;
           }
         }
 
@@ -803,15 +837,15 @@ export default function DiscoveryFeed({ onVolverMenu, onVerVitrinaNegocio }) {
           }
 
           .modal-content {
-            padding: 16px;
+            padding: 0;
             border-radius: 18px;
           }
 
           .modal-image-container {
-            height: 150px;
+            height: 220px;
           }
 
-          .modal-title {
+          .product-title {
             font-size: 16px;
           }
 
@@ -1017,53 +1051,61 @@ export default function DiscoveryFeed({ onVolverMenu, onVerVitrinaNegocio }) {
             className="modal-content"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* BOTÓN DE CERRAR (Visible y elegante) */}
             <button
               type="button"
               onClick={() => setItemModal(null)}
-              className="modal-close"
+              className="close-btn"
+              aria-label="Cerrar"
             >
               ✕
             </button>
 
+            {/* HEADER: Imagen del producto */}
             <div className="modal-image-container">
               {itemModal.image_url && itemModal.image_url !== 'https://via.placeholder.com/300?text=Sin+Foto' ? (
                 <img src={itemModal.image_url} alt={itemModal.title || itemModal.name} />
               ) : (
-                <span style={{ fontSize: '48px' }}>
+                <span role="img" aria-label={itemModal.item_type === 'servicio' ? 'Servicio' : 'Producto'}>
                   {itemModal.item_type === 'servicio' ? '🛠️' : '📦'}
                 </span>
               )}
             </div>
 
-            <div className="modal-business">
-              <span style={{ fontSize: '13px' }}>🏪</span>
-              <span className="modal-business-name">
-                {itemModal.business?.business_name}
-              </span>
-              <span className="modal-business-location">
-                — {itemModal.business?.city}, {itemModal.business?.department}
-              </span>
+            {/* BODY: Texto del producto */}
+            <div className="modal-body">
+              <div className="modal-business">
+                <span style={{ fontSize: '13px' }}>🏪</span>
+                <span className="modal-business-name">
+                  {itemModal.business?.business_name}
+                </span>
+                <span className="modal-business-location">
+                  — {itemModal.business?.city}, {itemModal.business?.department}
+                </span>
+              </div>
+
+              <h2 className="product-title">{itemModal.title || itemModal.name}</h2>
+              <p className="product-price">
+                {formatearMoneda(itemModal.price || itemModal.valor_de_venta)}
+              </p>
+
+              <div className="product-details">
+                <h3>Detalles y Beneficios:</h3>
+                <p>{itemModal.description || 'Sin descripción disponible.'}</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleContactar(itemModal)}
+                className="btn-modal-contactar"
+              >
+                💬 Contactar y Pedir al Negocio
+              </button>
             </div>
-
-            <h2 className="modal-title">{itemModal.title || itemModal.name}</h2>
-            <span className="modal-price">
-              {formatearMoneda(itemModal.price || itemModal.valor_de_venta)}
-            </span>
-
-            {itemModal.description && (
-              <p className="modal-description">{itemModal.description}</p>
-            )}
-
-            <button
-              type="button"
-              onClick={() => handleContactar(itemModal)}
-              className="btn-modal-contactar"
-            >
-              💬 Contactar y Pedir al Negocio
-            </button>
           </div>
         </div>
       )}
     </div>
+    </>
   );
 }

@@ -160,7 +160,7 @@ export default function TrustProfileForm({ businessId }) {
           {/* Hablador / Ayuda contextual */}
           {showTooltips.description && (
             <div className="mb-2 p-3 bg-blue-50 border-l-4 border-blue-500 text-blue-900 text-xs rounded-r-lg space-y-1">
-              <p className="font-semibold">💡 Optimización para Asistentes de IA y SEO:</p>
+              <p className="font-semibold">💡 Optimización para Asistentes de IA y Buscadores:</p>
               <p>Evita limitarte a listar características. Explica con claridad **qué problema resuelves**, **a quién ayudas** y **por qué eres superior**. Los motores de IA (como ChatGPT o Google Gemini) extraen este texto exacto para recomendar tu negocio ante los usuarios.</p>
             </div>
           )}

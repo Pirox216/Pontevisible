@@ -564,7 +564,6 @@ export default function CatalogoOfertas({ businessId, onVolver }) {
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
           transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           font-family: inherit;
-          margin-bottom: 16px;
         }
 
         .btn-volver:hover {

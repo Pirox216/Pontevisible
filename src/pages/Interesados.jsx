@@ -19,7 +19,7 @@ export default function Interesados({ onVolver }) {
   const [error, setError] = useState(null);
 
   // ============================================
-  // FUNCIONES DE CARGA
+  // FUNCIONES DE CARGA (CORREGIDO PARA MANEJAR ERRORES DE SUPABASE)
   // ============================================
   const cargarResultadosComerciales = async () => {
     setCargando(true);
@@ -28,17 +28,22 @@ export default function Interesados({ onVolver }) {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        const { data: userProfile } = await supabase
-          .schema('identity')
+        // Obtenemos el organization_id
+        const { data: userProfile, error: profileError } = await supabase
           .from('user_profiles')
           .select('organization_id')
           .eq('user_id', user.id)
           .maybeSingle();
 
+        // Si hay error buscando el perfil, lo capturamos pero no rompemos todo
+        if (profileError) {
+          console.warn("Error buscando perfil:", profileError.message);
+        }
+
         const orgId = userProfile?.organization_id || user.id;
 
+        // Obtenemos las métricas
         const { data, error } = await supabase
-          .schema('analytics')
           .from('daily_metrics')
           .select('whatsapp_clicks, phone_clicks, directions_clicks, profile_views')
           .eq('organization_id', orgId);
@@ -60,8 +65,13 @@ export default function Interesados({ onVolver }) {
         }
       }
     } catch (err) {
+      // El código PGRST205 es específico de "tabla no encontrada"
+      if (err.code === 'PGRST205') {
+        setError('La tabla "daily_metrics" no existe en Supabase. Por favor, créala en el esquema público o ajusta el schema.');
+      } else {
+        setError(err.message || 'Error al cargar métricas');
+      }
       console.error('Error al cargar métricas comerciales:', err);
-      setError(err.message);
       setMetricas({ whatsapp: 0, llamadas: 0, ubicacion: 0, vistas: 0 });
     } finally {
       setCargando(false);
@@ -114,26 +124,29 @@ export default function Interesados({ onVolver }) {
           min-height: 100vh;
         }
 
-        /* ----- BOTÓN VOLVER ----- */
+        /* ----- BOTÓN VOLVER (ACTUALIZADO PARA COINCIDIR) ----- */
         .btn-volver {
-          background: none;
-          border: none;
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
           color: #0B132B;
           cursor: pointer;
           font-size: 14px;
           font-weight: 700;
-          margin-bottom: 20px;
-          padding: 0;
+          margin-bottom: 24px;
+          padding: 10px 16px;
+          border-radius: 12px;
           display: inline-flex;
           align-items: center;
           gap: 8px;
           transition: all 0.2s ease;
           font-family: inherit;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .btn-volver:hover {
+          background: #F1F5F9;
+          transform: translateY(-2px);
           color: #0066FF;
-          transform: translateX(-2px);
         }
 
         /* ----- ENCABEZADO ----- */
@@ -497,14 +510,14 @@ export default function Interesados({ onVolver }) {
       `}</style>
 
       {/* ============================================
-          BOTÓN VOLVER
+          BOTÓN VOLVER (ACTUALIZADO)
           ============================================ */}
       <button
         type="button"
         onClick={onVolver}
         className="btn-volver"
       >
-        ⬅️ Volver al panel principal
+        🏠 Volver al Menú Principal
       </button>
 
       {/* ============================================

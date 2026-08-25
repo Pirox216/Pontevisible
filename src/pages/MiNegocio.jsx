@@ -1654,18 +1654,18 @@ export default function MiNegocio({ businessId, onVolverMenu }) {
             <div>
               <div className="indicators-label">Indicadores de Impacto Comercial</div>
               <div className="indicators-desc">
-                Optimización activa para Google SEO, ChatGPT y Perplexity.
+                Optimización activa para Google, ChatGPT y Perplexity.
               </div>
             </div>
             <div className="indicators-group">
               <div className="indicator-item">
-                <div className="indicator-item-label">Puntaje IA / SEO</div>
+                <div className="indicator-item-label">Visibilidad en Buscadores e IA</div>
                 <div className={`indicator-item-value ${seoScore >= 80 ? 'indicator-item-value--green' : 'indicator-item-value--yellow'}`}>
                   {seoScore}%
                 </div>
               </div>
               <div className="indicator-item">
-                <div className="indicator-item-label">Datos Google SEO</div>
+                <div className="indicator-item-label">Visibilidad en Google</div>
                 <div className="indicator-item-value indicator-item-value--green">✅ Listos</div>
               </div>
             </div>
@@ -1796,7 +1796,7 @@ export default function MiNegocio({ businessId, onVolverMenu }) {
 
                   {activeTooltip === 'descripcion' && (
                     <div className="tooltip-card">
-                      <div className="tooltip-title">🤖 Enfoque para SEO e IA:</div>
+                      <div className="tooltip-title">🤖 Enfoque para Google e IA:</div>
                       <div>Menciona tu trayectoria, tipo de clientes que atiendes y respaldo de marca.</div>
                     </div>
                   )}
