@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../config/supabase'
+import { traducirError } from '../utils/traducirError'
 
 // Lista de los Sectores Maestros
 const SECTORES_MAESTROS = [
@@ -39,12 +40,12 @@ export default function Register({ onSwitchToLogin }) {
       })
 
       if (error) {
-        setMessage(error.message)
+        setMessage(traducirError(error?.message || error))
       } else if (data?.user) {
         setMessage('✅ ¡Cuenta creada con éxito! Abriendo el espacio de tu negocio...')
       }
     } catch (err) {
-      setMessage(err.message)
+      setMessage(traducirError(err?.message || err))
     } finally {
       setLoading(false)
     }

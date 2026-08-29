@@ -263,14 +263,10 @@ export default function MiNegocio({ businessId, onVolverMenu }) {
 
   const irSiguienteTab = () => {
     if (activeTab === 'confianza') setActiveTab('estilo');
-    else if (activeTab === 'estilo') setActiveTab('ubicacion');
-    else if (activeTab === 'ubicacion') setActiveTab('canales');
   };
 
   const irAnteriorTab = () => {
-    if (activeTab === 'canales') setActiveTab('ubicacion');
-    else if (activeTab === 'ubicacion') setActiveTab('estilo');
-    else if (activeTab === 'estilo') setActiveTab('confianza');
+    if (activeTab === 'estilo') setActiveTab('confianza');
   };
 
   const crearNuevaSede = async () => {
@@ -1687,20 +1683,6 @@ export default function MiNegocio({ businessId, onVolverMenu }) {
             >
               🎨 Estilo y Vitrina
             </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('ubicacion')}
-              className={`tab-btn ${activeTab === 'ubicacion' ? 'tab-btn--active' : ''}`}
-            >
-              📍 Georreferenciación & Sede
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('canales')}
-              className={`tab-btn ${activeTab === 'canales' ? 'tab-btn--active' : ''}`}
-            >
-              🌐 Canales y Redes
-            </button>
           </div>
 
           {/* Formulario */}
@@ -1866,242 +1848,6 @@ export default function MiNegocio({ businessId, onVolverMenu }) {
               </div>
             )}
 
-            {/* ===== TAB 3: UBICACIÓN ===== */}
-            {activeTab === 'ubicacion' && (
-              <div>
-                <div className="field-group">
-                  <div className="field-group-header">
-                    <label className="field-group-label">Foto de Fachada de esta Sede</label>
-                    <button type="button" onClick={() => alternarAyuda('fachada')} className="help-btn">
-                      💡 {activeTooltip === 'fachada' ? 'Cerrar guía' : 'Ver Hablador'}
-                    </button>
-                  </div>
-
-                  {activeTooltip === 'fachada' && (
-                    <div className="tooltip-card">
-                      <div className="tooltip-title">🏢 Foto del Local Físico:</div>
-                      <div>Sube una foto clara del frente de esta sucursal. Ayuda a los clientes a ubicarte fácilmente al llegar.</div>
-                    </div>
-                  )}
-
-                  <div className="image-preview-container">
-                    <div className="image-preview-box image-preview-box--fachada">
-                      {formData.store_front_url ? (
-                        <img src={formData.store_front_url} alt="Fachada" />
-                      ) : (
-                        <span className="placeholder">🏢</span>
-                      )}
-                    </div>
-                    <div>
-                      <label className="btn-upload">
-                        {uploadingState.fachada ? '⏳ Comprimiendo...' : '📁 Cargar Foto de Fachada'}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => manejarSubidaImagen(e, 'fachada')}
-                          disabled={uploadingState.fachada}
-                          style={{ display: 'none' }}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="field-group">
-                  <label className="field-group-label">País de Operación</label>
-                  <select
-                    name="country"
-                    value={formData.country}
-                    onChange={manejarCambio}
-                    className="form-select"
-                  >
-                    <option value="Colombia">🇨🇴 Colombia (Preseleccionado)</option>
-                    <option value="México" disabled>🇲🇽 México (Próximamente)</option>
-                    <option value="Perú" disabled>🇵🇪 Perú (Próximamente)</option>
-                  </select>
-                </div>
-
-                <div className="field-group" style={{ marginBottom: 0 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label className="field-group-label">Departamento <span className="field-group-label-required">*</span></label>
-                      <select
-                        name="department"
-                        value={formData.department}
-                        onChange={manejarCambio}
-                        className="form-select"
-                        required
-                      >
-                        {GEO_COLOMBIA.map(dep => (
-                          <option key={dep.id} value={dep.departamento}>
-                            {dep.departamento}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="field-group-label">Ciudad / Municipio <span className="field-group-label-required">*</span></label>
-                      <select
-                        name="city"
-                        value={formData.city}
-                        onChange={manejarCambio}
-                        className="form-select"
-                        required
-                      >
-                        {ciudadesDisponibles.map((ciudad, idx) => (
-                          <option key={idx} value={ciudad}>{ciudad}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '16px' }}>
-                  <div className="field-group" style={{ marginBottom: 0 }}>
-                    <label className="field-group-label">Dirección Física <span className="field-group-label-required">*</span></label>
-                    <input
-                      type="text"
-                      name="address"
-                      value={formData.address}
-                      onChange={manejarCambio}
-                      placeholder="Ej: Cra 15 # 93-20"
-                      required
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="field-group" style={{ marginBottom: 0 }}>
-                    <label className="field-group-label">Zona / Barrio</label>
-                    <input
-                      type="text"
-                      name="zone"
-                      value={formData.zone}
-                      onChange={manejarCambio}
-                      placeholder="Ej: Chapinero"
-                      className="form-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="field-group" style={{ marginTop: '16px', marginBottom: 0 }}>
-                  <label className="field-group-label">Enlace de Google Maps</label>
-                  <input
-                    type="url"
-                    name="google_maps_url"
-                    value={formData.google_maps_url}
-                    onChange={manejarCambio}
-                    placeholder="https://maps.google.com/..."
-                    className="form-input"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* ===== TAB 4: CANALES ===== */}
-            {activeTab === 'canales' && (
-              <div>
-                <div className="field-group">
-                  <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', margin: '0 0 12px 0' }}>
-                    📞 Contacto Directo de esta Sede
-                  </h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label className="field-group-label">WhatsApp Comercial</label>
-                      <input
-                        type="text"
-                        name="whatsapp"
-                        value={formData.whatsapp}
-                        onChange={manejarCambio}
-                        placeholder="+57 300 123 4567"
-                        className="form-input"
-                      />
-                    </div>
-                    <div>
-                      <label className="field-group-label">Teléfono Fijo / PBX</label>
-                      <input
-                        type="text"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={manejarCambio}
-                        placeholder="(601) 5551234"
-                        className="form-input"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="field-group" style={{ backgroundColor: esSedePrincipal ? '#FFFFFF' : '#F1F5F9' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', margin: 0 }}>
-                      🌐 Redes Sociales Corporativas
-                    </h4>
-                    <span style={{
-                      fontSize: '10px',
-                      fontWeight: '700',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      backgroundColor: esSedePrincipal ? '#ECFDF5' : '#E2E8F0',
-                      color: esSedePrincipal ? '#065F46' : '#475569'
-                    }}>
-                      {esSedePrincipal ? 'Edición Habilitada (Matriz)' : 'Heredadas de Sede Principal'}
-                    </span>
-                  </div>
-
-                  {!esSedePrincipal && (
-                    <p style={{ fontSize: '11px', color: '#64748B', marginBottom: '12px' }}>
-                      ℹ️ Para modificar las redes corporativas globales, selecciona la <strong>Sede Principal</strong> arriba.
-                    </p>
-                  )}
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                    <div>
-                      <label className="field-group-label">Facebook</label>
-                      <input
-                        type="url"
-                        name="facebook"
-                        value={formData.facebook}
-                        onChange={manejarCambio}
-                        disabled={!esSedePrincipal}
-                        placeholder="https://facebook.com/empresa"
-                        className="form-input"
-                        style={{
-                          backgroundColor: esSedePrincipal ? '#FFFFFF' : '#F8FAFC',
-                          opacity: esSedePrincipal ? 1 : 0.7
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label className="field-group-label">Instagram</label>
-                      <input
-                        type="url"
-                        name="instagram"
-                        value={formData.instagram}
-                        onChange={manejarCambio}
-                        disabled={!esSedePrincipal}
-                        placeholder="https://instagram.com/empresa"
-                        className="form-input"
-                        style={{
-                          backgroundColor: esSedePrincipal ? '#FFFFFF' : '#F8FAFC',
-                          opacity: esSedePrincipal ? 1 : 0.7
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="field-group-label">Enlace de Pago Directo (Bold, Wompi, etc.)</label>
-                    <input
-                      type="url"
-                      name="payment_link"
-                      value={formData.payment_link}
-                      onChange={manejarCambio}
-                      placeholder="https://pay.bold.co/..."
-                      className="form-input"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* ===== PIE DEL FORMULARIO ===== */}
             <div className="form-footer">
               <div>
@@ -2117,7 +1863,7 @@ export default function MiNegocio({ businessId, onVolverMenu }) {
               </div>
 
               <div className="footer-actions">
-                {activeTab !== 'canales' && (
+                {activeTab === 'confianza' && (
                   <button type="button" onClick={irSiguienteTab} className="btn-primary">
                     Siguiente →
                   </button>

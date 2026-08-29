@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../config/supabase';
 import SEO from '../components/SEO';
 
@@ -38,6 +38,10 @@ export default function VitrinaPublica({ businessId, onVolver }) {
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const [lightboxAbierto, setLightboxAbierto] = useState(false);
 
+  // Búsqueda con debounce (300ms) para filtrar en vivo sin recargar
+  const [busquedaDebounce, setBusquedaDebounce] = useState('');
+  const refChips = useRef(null);
+
   useEffect(() => {
     cargarDatosVitrina();
   }, [businessId]);
@@ -56,6 +60,12 @@ export default function VitrinaPublica({ businessId, onVolver }) {
     window.addEventListener('keydown', manejarEscape);
     return () => window.removeEventListener('keydown', manejarEscape);
   }, [lightboxAbierto, itemSeleccionado]);
+
+  // Debounce de 300ms para la búsqueda en vivo
+  useEffect(() => {
+    const temporizador = setTimeout(() => setBusquedaDebounce(busqueda.trim().toLowerCase()), 300);
+    return () => clearTimeout(temporizador);
+  }, [busqueda]);
 
   const formatearMoneda = (valor) => {
     const num = Number(valor);
@@ -175,17 +185,44 @@ export default function VitrinaPublica({ businessId, onVolver }) {
       ? perfil.advantages.join(', ')
       : '';
 
-  const itemsFiltrados = (items || []).filter(item => {
+  const itemsFiltrados = useMemo(() => (items || []).filter(item => {
     const tipoItem = item.item_type || 'producto';
     const cumpleTipo = filtroTipo === 'todos' || tipoItem === filtroTipo;
     const cumpleCat = categoriaSeleccionada === 'todas' || String(item.category_id) === String(categoriaSeleccionada);
-    const nombre = item.title || item.name || '';
-    const desc = item.description || '';
-    const cumpleBusqueda = busqueda.trim() === '' || 
-      nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-      desc.toLowerCase().includes(busqueda.toLowerCase());
+    const texto = [
+      item.title || item.name || '',
+      item.brand || item.compatibility || item.specialty || item.modality || '',
+      item.description || '',
+    ].join(' ').toLowerCase();
+    const cumpleBusqueda = busquedaDebounce === '' || texto.includes(busquedaDebounce);
     return cumpleTipo && cumpleCat && cumpleBusqueda;
-  });
+  }), [items, filtroTipo, categoriaSeleccionada, busquedaDebounce]);
+
+  // Contadores por pestaña para la barra de filtros
+  const contadores = useMemo(() => {
+    const base = items || [];
+    const baseFiltado = categoriaSeleccionada === 'todas'
+      ? base
+      : base.filter(i => String(i.category_id) === String(categoriaSeleccionada));
+    return {
+      todos: baseFiltado.length,
+      productos: baseFiltado.filter(i => (i.item_type || 'producto') !== 'servicio').length,
+      servicios: baseFiltado.filter(i => (i.item_type || 'producto') === 'servicio').length,
+    };
+  }, [items, categoriaSeleccionada]);
+
+  // Copiar enlace del ítem al portapapeles
+  const compartirItem = async () => {
+    try {
+      const url = typeof window !== 'undefined' ? window.location.href : canonicalUrl;
+      await navigator.clipboard.writeText(url);
+    } catch {
+      /* portapapeles no disponible: no bloquear */
+    }
+  };
+
+  const numeroLimpio = String(perfil?.whatsapp || perfil?.phone || '').replace(/[^\d]/g, '');
+  const linkWhatsApp = `https://api.whatsapp.com/send?phone=${numeroLimpio}`;
 
   // ============================================
   // Datos de SEO / Datos Estructurados (Schema.org)
@@ -267,7 +304,7 @@ export default function VitrinaPublica({ businessId, onVolver }) {
       <div className="vitrina-container" role="main" aria-labelledby="vitrina-title">
       <div className="vitrina-wrapper">
         
-        {/* 1. BARRA SUPERIOR */}
+        {/* 1. BARRA SUPERIOR (glassmorphism) */}
         <div className="bar-top">
           {onVolver && (
             <button
@@ -275,13 +312,21 @@ export default function VitrinaPublica({ businessId, onVolver }) {
               onClick={onVolver}
               className="btn-volver"
             >
-              🏠 Volver al Menú Principal
+              ← Volver al Panel
             </button>
           )}
 
           <span className="badge-verificada">
-            <LogoPVPill color={colorPrimario} /> Vitrina Verificada
+            <LogoPVPill color={colorPrimario} /> ✓ Vitrina Verificada
           </span>
+        </div>
+
+        {/* 2. CINTILLO DE BENEFICIOS (USPs) */}
+        <div className="usp-strip" aria-label="Beneficios del negocio">
+          <div className="usp-capsula"><span role="img" aria-hidden="true">📦</span> Envíos Locales y Nacionales</div>
+          <div className="usp-capsula"><span role="img" aria-hidden="true">⭐</span> Trato Directo sin Intermediarios</div>
+          <div className="usp-capsula"><span role="img" aria-hidden="true">💳</span> Múltiples Medios de Pago</div>
+          <div className="usp-capsula"><span role="img" aria-hidden="true">⚡</span> Cotización Inmediata por Chat</div>
         </div>
 
         {/* 2. HERO COMERCIAL ESTRUCTURADO */}
@@ -433,27 +478,33 @@ export default function VitrinaPublica({ businessId, onVolver }) {
 
         {/* 4. BUSCADOR Y FILTROS */}
         <div className="filters-bar">
-          <div className="filter-group-buttons">
-            <button 
-              type="button" 
-              onClick={() => setFiltroTipo('todos')} 
+          <div className="filter-group-buttons" role="tablist" aria-label="Filtrar por tipo de ítem">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filtroTipo === 'todos'}
+              onClick={() => setFiltroTipo('todos')}
               className={`filter-btn ${filtroTipo === 'todos' ? 'active' : ''}`}
             >
-              Todos ({items.length})
+              Todos ({contadores.todos})
             </button>
-            <button 
-              type="button" 
-              onClick={() => setFiltroTipo('producto')} 
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filtroTipo === 'producto'}
+              onClick={() => setFiltroTipo('producto')}
               className={`filter-btn ${filtroTipo === 'producto' ? 'active' : ''}`}
             >
-              📦 Productos
+              📦 Productos ({contadores.productos})
             </button>
-            <button 
-              type="button" 
-              onClick={() => setFiltroTipo('servicio')} 
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filtroTipo === 'servicio'}
+              onClick={() => setFiltroTipo('servicio')}
               className={`filter-btn ${filtroTipo === 'servicio' ? 'active' : ''}`}
             >
-              🛠️ Servicios
+              🛠️ Servicios ({contadores.servicios})
             </button>
           </div>
 
@@ -464,19 +515,34 @@ export default function VitrinaPublica({ businessId, onVolver }) {
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="search-input"
+              aria-label="Buscar productos o servicios"
             />
-            {categorias.length > 0 && (
-              <select
-                value={categoriaSeleccionada}
-                onChange={(e) => setCategoriaSeleccionada(e.target.value)}
-                className="category-select"
+          </div>
+
+          {/* Chips tipo píldora por categoría (scroll suave con indicador) */}
+          <div className="pisos-filtro">
+            <div className="chips-track custom-scroll" ref={refChips} role="list" aria-label="Filtrar por categoría">
+              <button
+                type="button"
+                role="listitem"
+                onClick={() => setCategoriaSeleccionada('todas')}
+                className={`chip-pill ${categoriaSeleccionada === 'todas' ? 'active' : ''}`}
               >
-                <option value="todas">📁 Categorías</option>
-                {categorias.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            )}
+                📁 Todas las categorías
+              </button>
+              {categorias.map(cat => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  role="listitem"
+                  onClick={() => setCategoriaSeleccionada(String(cat.id))}
+                  className={`chip-pill ${String(categoriaSeleccionada) === String(cat.id) ? 'active' : ''}`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+            <span className="chips-scroll-hint" aria-hidden="true" />
           </div>
         </div>
 
@@ -501,7 +567,17 @@ export default function VitrinaPublica({ businessId, onVolver }) {
                 >
                   <div className="item-image-container">
                     {item.image_url && item.image_url !== 'https://via.placeholder.com/300?text=Sin+Foto' ? (
-                      <img src={item.image_url} alt={item.title || item.name} />
+                      <img
+                        src={item.image_url}
+                        alt={item.title || item.name}
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const hermano = e.currentTarget.nextElementSibling;
+                          if (hermano) hermano.style.display = 'flex';
+                        }}
+                      />
                     ) : (
                       <span className="fallback-emoji" role="img" aria-label={esServicio ? 'Servicio' : 'Producto'}>
                         {esServicio ? '🛠️' : '📦'}
@@ -531,6 +607,14 @@ export default function VitrinaPublica({ businessId, onVolver }) {
                         {item.description.length > 85 ? `${item.description.substring(0, 85)}...` : item.description}
                       </p>
                     )}
+
+                    <button
+                      type="button"
+                      className="ver-detalle-link"
+                      onClick={(e) => { e.stopPropagation(); setItemSeleccionado(item); }}
+                    >
+                      Ver detalle →
+                    </button>
 
                     {!esServicio && (
                       <div className="stock-wrapper">
@@ -599,6 +683,8 @@ export default function VitrinaPublica({ businessId, onVolver }) {
                   <img 
                     src={itemSeleccionado.image_url} 
                     alt={itemSeleccionado.title || itemSeleccionado.name} 
+                    loading="lazy" 
+                    decoding="async" 
                   />
                   <span className="zoom-icon" aria-hidden="true">🔍</span>
                 </button>
@@ -654,11 +740,19 @@ export default function VitrinaPublica({ businessId, onVolver }) {
 
               <button
                 type="button"
+                onClick={compartirItem}
+                className="modal-share-btn"
+              >
+                🔗 Compartir este ítem
+              </button>
+
+              <button
+                type="button"
                 disabled={itemSeleccionado.item_type !== 'servicio' && (itemSeleccionado.stock || 0) <= 0}
                 onClick={() => handleContactarWhatsApp(itemSeleccionado)}
                 className={`modal-submit-btn ${itemSeleccionado.item_type === 'servicio' || (itemSeleccionado.stock || 0) > 0 ? 'active' : 'disabled'}`}
               >
-                {(itemSeleccionado.item_type === 'servicio' || (itemSeleccionado.stock || 0) > 0) ? '💬 Solicitar y Pedir por WhatsApp' : '🚫 Producto Agotado'}
+                {(itemSeleccionado.item_type === 'servicio' || (itemSeleccionado.stock || 0) > 0) ? '💬 Solicitar este ítem por WhatsApp' : '🚫 Producto Agotado'}
               </button>
             </div>
             </div>
@@ -808,6 +902,25 @@ export default function VitrinaPublica({ businessId, onVolver }) {
           </div>
         </footer>
 
+        {/* 9. BARRA DE ACCIONES MÓVIL FIJA */}
+        <div className="mobile-action-bar" aria-label="Acciones rápidas">
+          <a href={linkWhatsApp} target="_blank" rel="noreferrer" className="mb-btn mb-whatsapp">
+            💬 WhatsApp
+          </a>
+          <a href={`tel:${telefonoLimpio || ''}`} className="mb-btn mb-llamar">
+            📞 Llamar
+          </a>
+          {perfil?.address ? (
+            <a href={perfil?.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(perfil.address)}`} target="_blank" rel="noreferrer" className="mb-btn mb-ubicacion">
+              📍 Ubicación
+            </a>
+          ) : (
+            <button type="button" className="mb-btn mb-ubicacion" onClick={() => handleContactarWhatsApp()}>
+              📍 Ubicación
+            </button>
+          )}
+        </div>
+
       </div>
 
       <style jsx>{`
@@ -831,7 +944,17 @@ export default function VitrinaPublica({ businessId, onVolver }) {
           align-items: center;
           flex-wrap: wrap;
           gap: 12px;
-          margin-bottom: 20px;
+          margin-bottom: 14px;
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          padding: 10px 12px;
+          background: rgba(255, 255, 255, 0.82);
+          -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.6);
+          border-radius: 16px;
+          box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
         }
 
         .btn-volver {
@@ -869,6 +992,76 @@ export default function VitrinaPublica({ businessId, onVolver }) {
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
+        /* ---- Cintillo de beneficios (USPs) ---- */
+        .usp-strip {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 12px;
+          background-color: #0B132B;
+          border-radius: 18px;
+          padding: 14px 18px;
+          margin-bottom: 22px;
+          box-shadow: 0 10px 24px -12px rgba(11, 19, 43, 0.5);
+        }
+        .usp-capsula {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          border-radius: 12px;
+          background-color: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          color: #E2E8F0;
+          font-size: 12.5px;
+          font-weight: 700;
+          line-height: 1.3;
+        }
+        .usp-capsula span { font-size: 18px; flex-shrink: 0; }
+
+        /* ---- Barra de acciones móvil fija ---- */
+        .mobile-action-bar {
+          display: none;
+        }
+        @media (max-width: 768px) {
+          .mobile-action-bar {
+            display: flex;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 120;
+            background-color: #FFFFFF;
+            border-top: 1px solid #E2E8F0;
+            box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.10);
+            padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+            gap: 8px;
+          }
+          .mb-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 800;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+          }
+          .mb-whatsapp { background-color: #25D366; color: #ffffff; }
+          .mb-llamar { background-color: ${colorPrimario}; color: #ffffff; }
+          .mb-ubicacion { background-color: #F1F5F9; color: #0B132B; }
+          .vitrina-container { padding-bottom: 96px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .item-card:hover, .item-card:hover .item-image-container img { transform: none; transition: none; }
+          .mobile-action-bar { transition: none; }
+        }
+
         .hero-card {
           background-color: #FFFFFF;
           border-radius: 24px;
@@ -881,7 +1074,7 @@ export default function VitrinaPublica({ businessId, onVolver }) {
 
         .hero-fachada {
           width: 100%;
-          height: 280px;
+          height: 230px;
           overflow: hidden;
           background-color: #E2E8F0;
         }
@@ -1252,9 +1445,72 @@ export default function VitrinaPublica({ businessId, onVolver }) {
           font-weight: 700;
         }
 
+        /* ---- Chips tipo píldora (categorías) ---- */
+        .pisos-filtro {
+          position: relative;
+          margin-top: 14px;
+          width: 100%;
+        }
+        .chips-track {
+          display: flex;
+          gap: 10px;
+          overflow-x: auto;
+          padding: 4px 2px 10px 2px;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+        }
+        .chips-track::-webkit-scrollbar { height: 6px; }
+        .chips-track::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 100px; }
+        .chip-pill {
+          flex: 0 0 auto;
+          padding: 9px 16px;
+          border-radius: 100px;
+          border: 1.5px solid #E2E8F0;
+          background-color: #FFFFFF;
+          color: #475569;
+          font-size: 12.5px;
+          font-weight: 800;
+          cursor: pointer;
+          white-space: nowrap;
+          font-family: inherit;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .chip-pill:hover { border-color: ${colorPrimario}; color: ${colorPrimario}; }
+        .chip-pill.active {
+          background-color: ${colorPrimario};
+          border-color: ${colorPrimario};
+          color: #FFFFFF;
+        }
+        .custom-scroll { scrollbar-width: thin; }
+        .chips-scroll-hint {
+          position: absolute;
+          top: 0; bottom: 8px;
+          right: 0;
+          width: 42px;
+          pointer-events: none;
+          background: linear-gradient(90deg, transparent, rgba(248, 250, 252, 1));
+          border-radius: 12px;
+        }
+
+        /* ---- Enlace "Ver detalle" en tarjeta ---- */
+        .ver-detalle-link {
+          background: none;
+          border: none;
+          padding: 0;
+          margin: 0 0 8px 0;
+          color: ${colorPrimario};
+          font-size: 12.5px;
+          font-weight: 800;
+          cursor: pointer;
+          font-family: inherit;
+          text-align: left;
+          transition: opacity 0.2s ease;
+        }
+        .ver-detalle-link:hover { opacity: 0.8; }
+
         .items-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
           gap: 22px;
         }
 
@@ -1271,25 +1527,32 @@ export default function VitrinaPublica({ businessId, onVolver }) {
         }
 
         .item-card:hover {
-          transform: translateY(-5px);
+          transform: translateY(-4px);
           border-color: ${colorPrimario};
           box-shadow: 0 14px 28px ${colorPrimario}20;
         }
 
         .item-image-container {
           height: 210px;
+          width: 100%;
           background-color: #F8FAFC;
           position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 12px;
+          overflow: hidden;
         }
 
         .item-image-container img {
           max-width: 100%;
           max-height: 100%;
           object-fit: contain;
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .item-card:hover .item-image-container img {
+          transform: scale(1.05);
         }
 
         .fallback-emoji {
@@ -1722,6 +1985,27 @@ export default function VitrinaPublica({ businessId, onVolver }) {
           color: #FFFFFF;
           cursor: not-allowed;
           box-shadow: none;
+        }
+
+        .modal-share-btn {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 12px 16px;
+          margin-bottom: 8px;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 12px;
+          background-color: #FFFFFF;
+          color: #475569;
+          font-size: 13.5px;
+          font-weight: 800;
+          cursor: pointer;
+          font-family: inherit;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-share-btn:hover {
+          border-color: #0066FF;
+          color: #0066FF;
+          background-color: #EFF6FF;
         }
 
         /* ----- CARRUSEL DE DESTACADOS ----- */

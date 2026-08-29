@@ -122,62 +122,64 @@ export default function CatalogoOfertas({ businessId, onVolver }) {
       const { data: { user } } = await supabase.auth.getUser();
       const currentUserId = businessId || user?.id;
 
-      // 1. Cargar Categorías
-      try {
-        const { data: catData, error: catErr } = await supabase
-          .from('categories')
-          .select('id, name')
-          .order('name', { ascending: true });
+      // ============================================
+      // CARGA PARALELA (Promise.all) SIN BLOQUEAR UI
+      // Las 3 consultas del portafolio se ejecutan a la
+      // vez; cada una maneja su error de forma aislada.
+      // ============================================
+      const consultaCategorias = supabase
+        .from('categories')
+        .select('id, name')
+        .order('name', { ascending: true });
 
-        if (!catErr && catData && catData.length > 0) {
-          const nombresBD = new Set(catData.map(c => c.name.toLowerCase()));
-          const maestrasRestantes = CATEGORIAS_DEFAULT.filter(
-            c => !nombresBD.has(c.name.toLowerCase())
-          );
-          setCategorias([...catData, ...maestrasRestantes]);
-        } else {
-          setCategorias(CATEGORIAS_DEFAULT);
-        }
-      } catch (err) {
+      let consultaProductos = supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (currentUserId) {
+        consultaProductos = consultaProductos.or(
+          `user_id.eq.${currentUserId},user_id.is.null`
+        );
+      }
+
+      let consultaPromociones = supabase
+        .from('promotions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (currentUserId) {
+        consultaPromociones = consultaPromociones.eq('user_id', currentUserId);
+      }
+
+      const [resCategorias, resProductos, resPromociones] = await Promise.allSettled([
+        consultaCategorias,
+        consultaProductos,
+        consultaPromociones
+      ]);
+
+      const valor = (r) => (r.status === 'fulfilled' ? r.value : { data: null, error: r.reason });
+
+      // --- Categorías del catálogo ---
+      const { data: catData, error: catErr } = valor(resCategorias);
+      if (!catErr && catData && catData.length > 0) {
+        const nombresBD = new Set(catData.map(c => c.name.toLowerCase()));
+        const maestrasRestantes = CATEGORIAS_DEFAULT.filter(
+          c => !nombresBD.has(c.name.toLowerCase())
+        );
+        setCategorias([...catData, ...maestrasRestantes]);
+      } else {
         setCategorias(CATEGORIAS_DEFAULT);
       }
 
-      // 2. Cargar Productos y Servicios
-      try {
-        let queryProducts = supabase
-          .from('products')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (currentUserId) {
-          queryProducts = queryProducts.eq('user_id', currentUserId);
-        }
-
-        const { data: itemData, error: itemErr } = await queryProducts;
-        if (!itemErr && itemData) {
-          setItems(itemData);
-        }
-      } catch (err) {
-        console.warn('Aviso cargando catálogo:', err.message);
+      // --- Productos y Servicios ---
+      const { data: itemData, error: itemErr } = valor(resProductos);
+      if (!itemErr && itemData) {
+        setItems(itemData);
       }
 
-      // 3. Cargar Promociones
-      try {
-        let queryPromos = supabase
-          .from('promotions')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (currentUserId) {
-          queryPromos = queryPromos.eq('user_id', currentUserId);
-        }
-
-        const { data: promoData, error: promoErr } = await queryPromos;
-        if (!promoErr && promoData) {
-          setPromociones(promoData);
-        }
-      } catch (e) {
-        console.warn('Aviso cargando promociones:', e.message);
+      // --- Promociones (se leen en paralelo, gestión de errores aislada) ---
+      const { data: promoData, error: promoErr } = valor(resPromociones);
+      if (!promoErr && promoData) {
+        setPromociones(promoData);
       }
     } catch (err) {
       console.error('Error general cargando datos:', err.message);
@@ -228,6 +230,7 @@ export default function CatalogoOfertas({ businessId, onVolver }) {
       const currentUserId = businessId || user?.id;
 
       const { data, error } = await supabase
+        .schema('catalog')
         .from('categories')
         .insert([{ name: nuevaCategoria.trim(), user_id: currentUserId }])
         .select()
@@ -293,6 +296,7 @@ export default function CatalogoOfertas({ businessId, onVolver }) {
     try {
       const nuevoEstado = !estadoActual;
       const { error } = await supabase
+        .schema('catalog')
         .from('products')
         .update({ is_active: nuevoEstado })
         .eq('id', itemId);
@@ -347,6 +351,7 @@ export default function CatalogoOfertas({ businessId, onVolver }) {
 
         try {
           const { data: existingCat } = await supabase
+            .schema('catalog')
             .from('categories')
             .select('id')
             .eq('name', catName)
@@ -356,6 +361,7 @@ export default function CatalogoOfertas({ businessId, onVolver }) {
             finalCategoryId = existingCat.id;
           } else {
             const { data: newCat } = await supabase
+              .schema('catalog')
               .from('categories')
               .insert([{ name: catName, user_id: currentUserId }])
               .select('id')
@@ -389,6 +395,7 @@ export default function CatalogoOfertas({ businessId, onVolver }) {
       };
 
       const { data, error } = await supabase
+        .schema('catalog')
         .from('products')
         .insert([payload])
         .select('*')

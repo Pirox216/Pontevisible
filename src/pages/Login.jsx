@@ -1,6 +1,7 @@
 // src/components/Login/Login.jsx
 import React, { useState } from 'react';
 import { supabase } from '../config/supabase';
+import { traducirError } from '../utils/traducirError';
 
 // ============================================
 // COMPONENTE - LOGO PONTEVISIBLE
@@ -110,8 +111,9 @@ export default function Login({ onSwitchToRegister }) {
 
       if (error) throw error;
     } catch (error) {
+      const mensajeAmigable = traducirError(error?.message || error);
       setMessage({
-        text: error.message || 'Error al iniciar sesión. Revisa tus credenciales.',
+        text: mensajeAmigable,
         type: 'error'
       });
     } finally {
@@ -143,8 +145,9 @@ export default function Login({ onSwitchToRegister }) {
         type: 'success'
       });
     } catch (error) {
+      const mensajeAmigable = traducirError(error?.message || error);
       setMessage({
-        text: error.message || 'Error al enviar el correo de recuperación.',
+        text: mensajeAmigable,
         type: 'error'
       });
     } finally {

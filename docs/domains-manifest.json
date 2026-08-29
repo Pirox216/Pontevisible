@@ -1,0 +1,196 @@
+{
+  "version": "1.0.0",
+  "product": "PonteVisible Pro",
+  "description": "Manifiesto oficial de dominios y esquemas de datos de PonteVisible Pro. Cada dominio declara su propósito, el esquema PostgreSQL al que se mapea y sus tablas/entidades de referencia. Ninguna tabla debe residir en más de un esquema activo.",
+  "domains": [
+    {
+      "name": "security",
+      "kind": "transversal",
+      "schema": "security",
+      "purpose": "Gobierno y control de acceso a nivel plataforma. Aislado de identity para evitar confusión con usuarios finales.",
+      "entities": ["platform_admins", "role_permissions", "permissions", "api_keys", "audit_log"]
+    },
+    {
+      "name": "foundation",
+      "kind": "core",
+      "schema": "foundation",
+      "purpose": "Datos base y configuración global del producto (parámetros, monedas, países, ubicación limpiada).",
+      "entities": ["settings", "countries", "currencies", "geo_zones"]
+    },
+    {
+      "name": "geo",
+      "kind": "core",
+      "schema": "foundation",
+      "purpose": "Georreferenciación normalizada (departamentos, ciudades, coordenadas). Vive bajo el schema foundation.",
+      "entities": ["departments", "cities", "geo_references"]
+    },
+    {
+      "name": "organizations",
+      "kind": "core",
+      "schema": "organizations",
+      "purpose": "Organizaciones y su estructura de sucursales/sedes.",
+      "entities": ["organizations", "branches"]
+    },
+    {
+      "name": "identity",
+      "kind": "core",
+      "schema": "identity",
+      "purpose": "Identidad de personas: usuarios, perfiles, membresías y roles de negocio.",
+      "entities": ["users", "user_profiles", "memberships", "roles"]
+    },
+    {
+      "name": "business",
+      "kind": "core",
+      "schema": "business",
+      "purpose": "Perfil comercial de cada negocio: nombre, redes, tagline, ventajas, links de pago.",
+      "entities": ["business_profiles", "business_settings", "social_links"]
+    },
+    {
+      "name": "crm",
+      "kind": "operational",
+      "schema": "crm",
+      "purpose": "Relaciones e interacciones comerciales: clientes, contactos, leads e interesados.",
+      "entities": ["customers", "contacts", "leads"]
+    },
+    {
+      "name": "catalog",
+      "kind": "operational",
+      "schema": "catalog",
+      "purpose": "Catálogo unificado de productos y servicios ofertados por los negocios.",
+      "entities": ["products", "services", "categories", "products_services (vista de compatibilidad)"]
+    },
+    {
+      "name": "inventory",
+      "kind": "operational",
+      "schema": "inventory",
+      "purpose": "Movimientos de stock y documentos de inventario (kardex).",
+      "entities": ["stock_documents", "stock_movements", "warehouses"]
+    },
+    {
+      "name": "sales",
+      "kind": "operational",
+      "schema": "sales",
+      "purpose": "Órdenes de venta, cotizaciones y facturación.",
+      "entities": ["sales_orders", "quotations", "invoices"]
+    },
+    {
+      "name": "cash",
+      "kind": "operational",
+      "schema": "cash",
+      "purpose": "Caja y tesorería: arqueos, movimientos de caja y conciliaciones.",
+      "entities": ["cash_register", "cash_movements"]
+    },
+    {
+      "name": "appointments",
+      "kind": "operational",
+      "schema": "appointments",
+      "purpose": "Agenda de citas y reservas de servicios.",
+      "entities": ["appointments", "appointment_services"]
+    },
+    {
+      "name": "marketing",
+      "kind": "operational",
+      "schema": "marketing",
+      "purpose": "Campañas, promociones y envíos a clientes.",
+      "entities": ["promotions", "campaigns", "coupons"]
+    },
+    {
+      "name": "automation",
+      "kind": "intelligence",
+      "schema": "automation",
+      "purpose": "Workflows y automatizaciones de procesos de negocio.",
+      "entities": ["workflows", "workflow_steps", "triggers"]
+    },
+    {
+      "name": "reports",
+      "kind": "intelligence",
+      "schema": "reports",
+      "purpose": "Reportes configurados y plantillas de exportación.",
+      "entities": ["report_definitions", "report_runs", "report_templates"]
+    },
+    {
+      "name": "ai_engine",
+      "kind": "intelligence",
+      "schema": "ai_engine",
+      "purpose": "Motor de IA: asistentes, diagnósticos, embeddings y recomendaciones.",
+      "entities": ["assistants", "ai_diagnostics", "embeddings", "recommendations"]
+    },
+    {
+      "name": "analytics",
+      "kind": "intelligence",
+      "schema": "analytics",
+      "purpose": "Métricas y analítica de resultados comerciales (OCG: Clics Oportunidades Contactos Generados).",
+      "entities": ["daily_metrics", "event_metrics", "conversion_events"]
+    },
+    {
+      "name": "discovery",
+      "kind": "marketplace",
+      "schema": "discovery",
+      "purpose": "Índice de negocio para la vitrina pública y el feed de descubrimiento.",
+      "entities": ["discovery_index", "vitrina_index"]
+    },
+    {
+      "name": "search",
+      "kind": "marketplace",
+      "schema": "discovery",
+      "purpose": "Búsqueda y filtrado de la vitrina. Vive bajo el schema discovery.",
+      "entities": ["search_queries", "indexed_terms"]
+    },
+    {
+      "name": "portal",
+      "kind": "marketplace",
+      "schema": "portal",
+      "purpose": "Portal público y cuentas de negocio (registro, configuración del local y lo que vendes).",
+      "entities": ["portal_sessions", "public_profiles"]
+    },
+    {
+      "name": "trust",
+      "kind": "marketplace",
+      "schema": "trust",
+      "purpose": "Confianza y reputación: reseñas, verificación y sellos de confianza.",
+      "entities": ["reviews", "trust_badges", "verifications"]
+    },
+    {
+      "name": "public_api",
+      "kind": "integration",
+      "schema": "public_api",
+      "purpose": "Exposición de API pública para integraciones externas de terceros.",
+      "entities": ["api_clients", "webhooks", "endpoints"]
+    },
+    {
+      "name": "workflow",
+      "kind": "operational",
+      "schema": "automation",
+      "purpose": "Ejecución de procesos de negocio y estados. Vive bajo el schema automation.",
+      "entities": ["process_states", "process_runs"]
+    },
+    {
+      "name": "notifications",
+      "kind": "integration",
+      "schema": "notifications",
+      "purpose": "Notificaciones push, por correo y mensajería (WhatsApp/SMS).",
+      "entities": ["notifications", "notification_templates", "channels"]
+    }
+  ],
+  "schemas_active": [
+    "public",
+    "graphql_public",
+    "foundation",
+    "identity",
+    "organizations",
+    "business",
+    "catalog",
+    "inventory",
+    "crm",
+    "appointments",
+    "analytics",
+    "discovery",
+    "security"
+  ],
+  "rules": {
+    "unified_catalog": "El catálogo unificado de productos/servicios reside bajo el esquema catalog en las tablas products/services, con products_services como vista de compatibilidad.",
+    "superadmin_isolation": "El acceso SuperAdmin reside en security.platform_admins, aislado de identity.user_profiles.",
+    "no_duplicate_tables": "Ninguna entidad debe residir en más de un esquema activo; las referencias cruzadas se exponen mediante vistas de compatibilidad."
+  }
+}
+
